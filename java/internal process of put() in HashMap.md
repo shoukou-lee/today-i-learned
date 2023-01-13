@@ -88,3 +88,9 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 10. e != null은 이미 같은 키가 버킷에 저장되어있는 경우이다. 다시말해, (4)와 (9)의 경우에서 reachable한 블록이다. 메서드 인자로 받은 `onlyIfAbsent`=false는 이미 같은 키가 저장되어 있을 때, value를 overwrite하는 옵션이다. 이후, 업데이트 되기 전의 값을 리턴한다.
 11. `modCount`는 해시의 구조가 변경된 횟수를 기록한다. (10)처럼 같은 키에 대해 처리하는 경우를 제외한 모든 메서드 호출이 `modCount`를 증가시킨다.
 12. 현재 HashMap에 저장된 엔트리 개수가 threshold를 넘으면, resize()를 호출한다. 이는 threshold와 capacity를 더블링한 새 HashMap을 만드는 메서드이다. 예를 들면, HashMap의 기본 threshold는 12이며, `DEFAULT_LOAD_FACTOR` = 0.75f와 `DEFAULT_INITIAL_CAPACITY`=16을 곱한 값을 갖게 된다. 12개의 데이터가 저장되면, 24의 threshold와 32의 capacity를 가진 해시맵 객체를 새로 만들어 리턴한다.  
+
+- 더 공부해볼 것들
+    - treefy가 진행되는 과정 : hashCode()가 항상 동일한 값을 리턴하도록 구현해 강제로 해시 충돌을 발생시켰을 때, HashMap doubling은 size=8일 때 진행됨. (default threshold인 12가 아닌) treefy threshold = 8과 연관이 있을 듯 함.
+    - 동일 키인지 판별할 때 굳이 해시 코드를 먼저 비교하는 이유 : 
+        - 다른 객체가 같은 해시코드를 가질 경우, 주소를 비교하는 것(==)으로 판별 가능. 해시 코드와 마찬가지로 정수 비교일 것 같은데, 어떤 이점이 있는지?
+        - 다른 객체가 다른 해시코드를 가질 경우, 코드블록 (2)에서 처리되고, 해시코드를 비교하는 코드라인은 unreachable함.

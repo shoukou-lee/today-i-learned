@@ -29,16 +29,14 @@ public boolean equals(Object obj) {
 - 두 객체의 equals() 결과가 같으면, hashCode() 결과도 같아야 한다.
 - 두 객체의 equals()가 다르더라도 꼭 hashCode()의 결과가 달라야하는 것은 아니다. 다만, 다른 해시코드를 갖는 것이 해시 테이블의 성능을 향상시킬 수 있다. (해시 충돌)
 
-이 중 2nd contract이 바로 해시 기반 자료구조 (e.g., HashMap)의 최적화를 위한 조건이다. 가령, HashMap.putVal(…) 메서드에서는 Key의 해시코드 정보를 바탕으로, 어떤 버킷에 키/값 쌍 을저장할 지 결정한다. 
+이 중 2nd contract이 바로 해시 기반 자료구조 (e.g., HashMap)의 최적화를 위한 조건이다. 가령, HashMap.putVal(…) 메서드에서는 Key의 해시코드 정보를 바탕으로, 어떤 버킷에 키/값 쌍을 저장할 지 결정한다. 
 
-논리적으로 같은 두 객체가 같은 해시코드를 갖는다면, 하나의 버킷에 대해 키/값 쌍이 덮어써진다. 하지만 해시코드를 오버라이드하지 않아 다른 해시코드를 가지게 되면, 해시맵 내부의 테이블 중 서로 다른 버킷에 데이터가 쓰여진다. 
+논리적으로 같은 두 객체가 같은 해시코드를 갖는다면, 하나의 버킷에 대해 키/값 쌍이 덮어써진다. 하지만 해시코드를 오버라이드하지 않아 다른 해시코드를 가지게 되면, 해시맵 내부의 테이블 중 서로 다른 버킷에 데이터가 쓰여지므로, 중복 키가 저장될 수 있다.
 
 따라서, 다음의 경우 항상 hashCode() 오버라이드를 구현해야 한다.
-
 - equals()의 오버라이딩 시
 - 해시 기반 자료구조에서 키로 활용 시
 
 ## **References**
-
 - [Java Language Specification](http://docs.oracle.com/javase/specs/jls/se19/html/jls-15.html#jls-15.21)
 - [javadoc 19](https://docs.oracle.com/en/java/javase/19/docs/api/java.base/java/lang/Object.html)
