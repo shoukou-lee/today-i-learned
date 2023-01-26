@@ -119,7 +119,9 @@ public class Client implements SubInterface1, SubInterface2 {
 ```
 
 ### 필드 제한
-클래스와 달리 인터페이스의 필드는 `public static final`로 접근 제한이 설정된다. 앞서 설명했듯, 인터페이스 자체로는 인스턴스를 생성할 수 없기 때문에, 필드 변수는 정적이고 재할당 불가능한 값을 가질 수밖에 없다. 인터페이스가 해결하고자 하는 미션은 객체의 상태가 아닌 객체가 가져야 하는 행동 양식을 표현하는 것이며, 인터페이스의 필드는 객체의 상태를 가지기보다, 인터페이스의 유틸리티적 성격이 강하다.
+클래스와 달리 인터페이스의 필드는 `public static final`로 접근 제한이 설정된다. 앞서 설명했듯, 인터페이스 자체로는 인스턴스를 생성할 수 없기 때문에, 필드 변수는 정적이고 재할당 불가능한 값을 가질 수밖에 없다. 인터페이스가 해결하고자 하는 미션은 객체의 상태가 아닌 객체가 가져야 하는 행동 양식을 표현하는 것이며, 인터페이스의 필드는 객체의 상태를 가지기보다, 인터페이스의 유틸리티적 성격이 강하다. 
+
+Java8 이후로 인터페이스에서 default method가 추가되면서, abstract class와의 차이가 옅어졌다. 그럼에도, '상태의 표현'이라는 관점에서 interface와 abstract class는 뚜렷히 구분된다.
 
 ## When to use: Interface vs. Abstract class
 ### Interface
@@ -129,6 +131,6 @@ public class Client implements SubInterface1, SubInterface2 {
 - 기능의 변경이 클 것이라 예상되지 않는 경우 (default는 하위 호환성을 위한 것이며 남발은 좋지 않다는 견해에 따르면)
 
 ### Abstract
-- field, method 중 일부를 공통화할 경우 (상속의 관점)
+- field로 표현되는 객체의 상태가 있고, 이를 추상화할 경우
 - 상속 구조 간 유사성이 있는 경우 
 - 공통화할 field, method에 public 이외의 접근 제한자를 설정할 경우
