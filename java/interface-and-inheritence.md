@@ -123,6 +123,8 @@ public class Client implements SubInterface1, SubInterface2 {
 
 Java8 이후로 인터페이스에서 default method가 추가되면서, abstract class와의 차이가 옅어졌다. 그럼에도, '상태의 표현'이라는 관점에서 interface와 abstract class는 뚜렷히 구분된다.
 
+이어지는 글에서는 상속과 인터페이스의 차이로부터 파생되는 장단점과 추상 클래스와 인터페이스의 선택 기준을 정리한다.
+
 ## When to use: Interface vs. Abstract class
 ### Interface
 - 설계 명세만을 선언하고 실제 구현 내용에 대해서는 관심이 없는 경우
