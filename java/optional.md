@@ -109,6 +109,8 @@ public final class Optional<T> {
     }
 ```
 
+[Java8에 도입된 `@FunctionalInterface`인  `Supplier`, `Consumer`, `Predicate`, `Function`에 대한 글은 여기로](/java/java8-functional-interface.md)
+
 ## Optional\<T\>의 편의성
 앞서 설명했듯, Optional\<T\>은 클라이언트에게 명시적으로 nullable함을 알려줌으로써, isPresent()/isEmpty()를 사용한 nullity check 필요성을 리마인드해줄 수 있다. 더욱 중요한 점은, Lambda expression을 활용해 null 조건 처리를 간결하게 만들 수 있다. `@FunctionalInterface`를 인자로 받아 null 조건을 처리하는 메서드를 제공하기 때문이다. 다음은 앞서 설명한 메서드의 용례를 보여주는 예제 코드이다.
 ```java
@@ -185,5 +187,3 @@ public class Person {
                         () -> System.out.println("이름이 없어요"));
     }
 ```
-
-[다음 글에서 Java8에 도입된 `@FunctionalInterface`인  `Supplier`, `Consumer`, `Predicate`, `Function`를 살펴보자.](WIP)
