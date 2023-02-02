@@ -89,6 +89,7 @@ public final class Optional<T> {
         }
     }
 ```
+\* [get()을 더이상 사용하지 않는 이유](https://stackoverflow.com/questions/26327957/should-java-8-getters-return-optional-type/26328555)
  
 내부 value의 nullity에 따라 함수를 호출하는 메서드이다. `Consumer`와 `Runnable`도 마찬가지로 `@FunctionalInterface`이다.
 ```java
@@ -110,6 +111,40 @@ public final class Optional<T> {
 ```
 
 [Java8에 도입된 `@FunctionalInterface`인  `Supplier`, `Consumer`, `Predicate`, `Function`에 대한 글은 여기로](/java/java8-functional-interface.md)
+
+## orElse() vs orElseGet()
+orElse()와 orElseGet()은 default value을 얻기 위해 미리 정해진 값을 사용할 것인지, `Supplier`의 결과를 사용할 것인지에 대한 차이가 있다. 하지만 이 차이를 이해하지 못하면 원치 않는 메서드 호출이 발생할 수 있다. 예를 들어, 아래와 같이 사용자 이름으로 User 객체를 찾는 `Storage` 클래스가 있다. `Storage`의 목적은 캐시를 사용해 조회 성능을 향상시키고, 클라이언트로부터 캐시 존재를 숨길 목적으로 만들어졌다. `public findUserByName()` 메서드는 캐시를 먼저 읽고(`readFromCache`) cache-miss가 발생하면 DB에 접근(`readFromDB`)해 결과를 리턴할 의도를 구현한 것이다.
+
+하지만 `findUserByName()`을 실행하면, cache-hit이 발생하더라도 DB 조회를 시도한다. orElse()는 value=null일 경우에 리턴을 위한 기본"값"을 되돌려준다. 파라미터로 `readFromDB(name)` 메서드의 실행 결과를 넘겨줬기 때문에, 이 값을 평가하기 위해 메서드가 실행된 것이다.
+
+이를 해결하기 위해서는 `readFromDB` 메서드의 실행을 지연시켜야 한다. orElseGet()에 메서드를 `Supplier` 타입의 인자로 넘겨줌으로써 달성할 수 있다.
+```java
+public class Storage {
+
+    private final Cache cache;
+
+    private final Database db;
+
+    public Storage(Cache cache, Database db) {
+        this.cache = cache;
+        this.db = db;
+    }
+
+    public User findUserByName(String name) {
+        return readFromCache(name)
+                // .orElse(readFromDB(name)); -> wrong
+                .orElseGet(() -> readFromDB(name)); // readFromDB 호출 지연
+    }
+
+    private Optional<User> readFromCache(String name) {
+        return cache.find(name);
+    }
+
+    private User readFromDB(String name) {
+        return db.find(name);
+    }
+}
+```
 
 ## Optional\<T\>의 편의성
 앞서 설명했듯, Optional\<T\>은 클라이언트에게 명시적으로 nullable함을 알려줌으로써, isPresent()/isEmpty()를 사용한 nullity check 필요성을 리마인드해줄 수 있다. 더욱 중요한 점은, Lambda expression을 활용해 null 조건 처리를 간결하게 만들 수 있다. `@FunctionalInterface`를 인자로 받아 null 조건을 처리하는 메서드를 제공하기 때문이다. 다음은 앞서 설명한 메서드의 용례를 보여주는 예제 코드이다.
@@ -187,3 +222,23 @@ public class Person {
                         () -> System.out.println("이름이 없어요"));
     }
 ```
+
+앞서 설명했듯, Optional\<T\>은 클라이언트에게 명시적으로 nullable함을 알려줌으로써, isPresent()/isEmpty()를 사용한 nullity check 필요성을 리마인드해줄 수 있다. 더욱 중요한 점은, Lambda expression을 활용해 null 조건 처리를 간결하게 만들 수 있다. `@FunctionalInterface`를 인자로 받아 null 조건을 처리하는 메서드를 제공하기 때문이다. 다음은 앞서 설명한 메서드의 용례를 보여주는 예제 코드이다.
+
+## Optional\<T\>을 잘 활용하기 위해
+Optional은 nullable한 리턴을 대응하기 위한 목적으로 설계되었다. Optional을 올바르게 사용하기 위해 [지켜야 할 점](https://dzone.com/articles/using-optional-correctly-is-not-optional)이 많고, 지키지 못해 생기는 심각한 부작용이 있다. 또한, 잠재적인 [성능 문제](https://pkolaczk.github.io/overhead-of-optional/)가 존재한다.
+
+- Optional에 null을 할당하지 말 것
+    - Optional 또한 reference type의 box이다. null이 대입될 수 있다.
+- 리턴 타입으로만 사용할 것
+    - 필드에 Optional을 사용하지 말 것. Optional은 Serializable을 구현하지 않는다.
+    - 파라미터에 Optional을 넘겨주지 말 것. Optional parameter가 null일 수 있다.
+- nullity check 대신 orElseXXX로 보일러플레이트를 줄일 것
+- 과용하지 말 것. Optional.orElse()을 getter처럼 쓰는 것이 대표적인 예이다.
+- 컬렉션 사용에 유의할 것
+    - 컬렉션을 Optional로 감싸지 말 것. 빈 컬렉션을 반환하는 더 좋은 대안이 있다.
+    - 컬렉션에 Optional을 집어넣지 말 것. getOrDefault()라는 더 좋은 대안이 있다.
+- Equality에 유의할 것
+    - Equality 검사를 위해 Optional unboxing 하지 말 것. `equals()` 구현을 확인해보면 알 수 있다.
+    - `==`보다 `equals()`를 사용할 것.
+
