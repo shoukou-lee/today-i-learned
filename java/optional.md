@@ -132,8 +132,8 @@ public class Storage {
 
     public User findUserByName(String name) {
         return readFromCache(name)
-                // .orElse(readFromDB(name)); -> wrong
-                .orElseGet(() -> readFromDB(name)); // readFromDB 호출 지연
+                .orElse(readFromDB(name)); // <--- wrong 
+                // .orElseGet(() -> readFromDB(name)); <--- correct
     }
 
     private Optional<User> readFromCache(String name) {
@@ -141,7 +141,10 @@ public class Storage {
     }
 
     private User readFromDB(String name) {
-        return db.find(name);
+        User user = db.find(name)
+                .orElseThrow(() -> new RuntimeException("일치하는 유저가 없습니다."));
+        cache.put(user);
+        return user;
     }
 }
 ```
