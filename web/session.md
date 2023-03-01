@@ -5,7 +5,47 @@
 ```
 
 ## 세션 정보의 공유
-쿠키, URL rewriting
+클라이언트의 요청을 서블릿 컨테이너는`HttpServletRequest`로 가공해 서블릿에 전달한다. 이 객체 안에서 요청된 Session ID를 찾을 수 있다. 이 Session ID는 클라이언트의 요청 쿠키에 담겨있거나, 요청 URL에 담길 수 있다.
+
+클라이언트가 Session ID를 쿠키에 담던 URL던, 서버가 요청받은 세션 공간에 접근하고자 한다면 [HttpServletRequest#getSession](https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#getSession())을 호출하면 된다. 
+
+### 쿠키
+클라이언트가 세션을 발급받았다면, 이후 요청부터는 쿠키에 `JSESSIONID=...`를 담아 요청한다.
+서버는 쿠키로부터 `JSESSIONID`를 확인하고, 이를 세션 공간의 key로 세션 정보에 접근할 수 있다.
+
+### URL rewriting
+쿠키를 사용할 수 없는 브라우저에서는 세션 정보를 쿠키로 교환할 수 없게 된다. 다시 말하면, 클라이언트 쿠키에서 Session ID를 찾을 수 없기 때문에, 서버는 매번 새로운 요청으로 판단하고 새 세션 공간을 만들어 `Set-Cookie` 응답을 줄 것이다. 
+
+이러한 문제를 해결하기 위한 방법이 URL rewriting이다. 서버는 요청받은 URL에 해당 세션 ID를 추가해 redirect를 유도한다. 
+`http://foo.bar.com;jsessionid=...`의 형식으로 URL을 새로 만드는 것이다. 
+
+URL rewriting을 위한 메서드로는 [HttpServletResponse#encodeURL](https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletResponse.html#encodeURL(java.lang.String))이 있다. 아래의 코드는 쿠키를 사용할 수 없는 클라이언트 환경을 위해 rewritten-url을 제공하고, URL로 Session ID를 식별해 방문 횟수를 카운트하는 예이다. 
+
+```java
+@Override
+protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    final String VISIT_COUNT = "visit_count";
+
+    HttpSession session = req.getSession(false);
+    if (session == null) {
+        session = req.getSession(true);
+        session.setAttribute(VISIT_COUNT, 1);
+    } else {
+        Integer count = (Integer) session.getAttribute(VISIT_COUNT);
+        session.setAttribute(VISIT_COUNT, count + 1);
+    }
+
+    Integer count = (Integer) session.getAttribute(VISIT_COUNT);
+    String encodedUrl = res.encodeURL(HttpUtils.getRequestURL(req).toString());
+
+    res.setContentType("text/html");
+    PrintWriter out = res.getWriter();
+    out.println("<a> count = " + count + " </a>");
+    out.println("<br>");
+    out.println("<a> your own url is " + encodedUrl + " </a>");
+    out.close();
+}
+```
 
 ## 분산 환경에서의 세션 불일치
 서버가 scaled-out 된 상황에서와 같이, 분산 환경에서는 `세션 불일치` 문제가 발생할 수 있다.
