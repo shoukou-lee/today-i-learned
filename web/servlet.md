@@ -12,7 +12,78 @@
 
 ### 초기화
 인스턴스화된 서블릿은 사용자의 요청을 처리하기 전에 초기화되어야 한다. 컨테이너는 `init()` 메서드를 호출함으로써 서블릿을 초기화한다. 
-`init()`의 인자로 `ServletConfig`를 받는데, 이는 초기화 과정에서 서블릿 컨테이너로부터 주입되는 정보이다.  
+`init()`의 인자로 `ServletConfig`를 받는데, 이는 초기화 과정에서 서블릿 컨테이너로부터 주입되는 정보이다. 
+
+`GenericServlet`의 구현을 살펴보자. 서블릿 컨테이너가 서블릿을 초기화하기 위해, `init(ServletConfig config)`을 호출하면, 파라미터를 서블릿의 config에 바인딩한다. 
+이후 `init()`을 호출한다. 이 `init()`의 구현은 No-op이며, 일반적으로 사용자가 override해서 초기화 로직을 구현하게 된다.
+
+```java
+    /**
+     * Called by the servlet container to indicate to a servlet that the servlet is being placed into service. See
+     * {@link Servlet#init}.
+     *
+     * <p>
+     * This implementation stores the {@link ServletConfig} object it receives from the servlet container for later use.
+     * When overriding this form of the method, call <code>super.init(config)</code>.
+     *
+     * @param config the <code>ServletConfig</code> object that contains configuration information for this servlet
+     *
+     * @exception ServletException if an exception occurs that interrupts the servlet's normal operation
+     * 
+     * @see UnavailableException
+     */
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        this.config = config;
+        this.init();
+    }
+
+    /**
+     * A convenience method which can be overridden so that there's no need to call <code>super.init(config)</code>.
+     *
+     * <p>
+     * Instead of overriding {@link #init(ServletConfig)}, simply override this method and it will be called by
+     * <code>GenericServlet.init(ServletConfig config)</code>. The <code>ServletConfig</code> object can still be retrieved
+     * via {@link #getServletConfig}.
+     *
+     * @exception ServletException if an exception occurs that interrupts the servlet's normal operation
+     */
+    public void init() throws ServletException {
+
+    }
+```
+
+서블릿의 Constructor를 호출해 인스턴스를 생성한 것과, 서블릿의 `init()`을 호출해 초기화 한 것은 `ServletConfig`의 바인딩 유무로 볼 수 있다.
+서블릿은 `ServletConfig#getServletContext`를 통해 서블릿 컨텍스트에 접근할 수 있다. 다시 말하면, 단순히 생성된 객체 상태의 서블릿과 초기화된 서블릿은 서블릿 컨텍스트에 접근이 가능한가, 그렇지 않은가의 차이를 가진다.
+
+예를 들면, 서블릿의 `init(ServletConfig config)` 메서드 구현에서, config를 바인딩하지 않는다면 이 서블릿의 `this.config = null`이 된다. 
+`getServletContext()`의 결과는 NullPointerException이 발생하므로, 서블릿 컨텍스트를 사용할 수 없게 된다.
+```java
+@WebServlet(name = "customServlet", value = "/custom")
+public class CustomServlet extends HttpServlet {
+    private String message;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        // super.init(config); // let config not bounded
+        init();
+    }
+
+    @Override
+    public void init() {
+        System.out.println("do nothing");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        ServletContext servletContext = getServletContext(); // null-pointer exception
+    }
+    ...
+}
+```
+
+
+
 
 ### 요청 처리
 서블릿의 `service()`메서드를 실행하여 클라이언트의 요청을 처리하는 과정이다. `ServletRequest`, `ServletResponse`를 service()의 인자로 받는다.  
