@@ -53,7 +53,7 @@
     }
 ```
 
-서블릿의 Constructor를 호출해 인스턴스를 생성한 것과, 서블릿의 `init()`을 호출해 초기화 한 것은 `ServletConfig`의 바인딩 유무로 볼 수 있다.
+서블릿의 Constructor로부터 인스턴스가 생성된 상태와 서블릿의 `init()`이 호출되어 초기화 된 상태의 가장 큰 차이는 `ServletConfig`의 바인딩 유무로 볼 수 있다.
 서블릿은 `ServletConfig#getServletContext`를 통해 서블릿 컨텍스트에 접근할 수 있다. 다시 말하면, 단순히 생성된 객체 상태의 서블릿과 초기화된 서블릿은 서블릿 컨텍스트에 접근이 가능한가, 그렇지 않은가의 차이를 가진다.
 
 예를 들면, 서블릿의 `init(ServletConfig config)` 메서드 구현에서, config를 바인딩하지 않는다면 이 서블릿의 `this.config = null`이 된다. 
@@ -81,9 +81,6 @@ public class CustomServlet extends HttpServlet {
     ...
 }
 ```
-
-
-
 
 ### 요청 처리
 서블릿의 `service()`메서드를 실행하여 클라이언트의 요청을 처리하는 과정이다. `ServletRequest`, `ServletResponse`를 service()의 인자로 받는다.  
